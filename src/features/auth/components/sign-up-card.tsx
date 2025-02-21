@@ -22,19 +22,15 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { registerSchema } from "@/features/auth/schemas";
+import { useRegister } from "@/features/auth/api/use-register";
 
-const formSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  email: z.string().trim().email(),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(256, "Password must be less than 256 characters"),
-});
+
 
 export const SignUpCard = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const { mutate } = useRegister();
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -42,8 +38,8 @@ export const SignUpCard = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log({ values });
+  const onSubmit = (values: z.infer<typeof registerSchema>) => {
+    mutate({ json: values });
   };
 
   return (
@@ -120,7 +116,6 @@ export const SignUpCard = () => {
                 </FormItem>
               )}
             />
-
             <Button disabled={false} size={"lg"} className="w-full">
               Login
             </Button>
