@@ -6,47 +6,57 @@ import { Hono } from "hono"
 import { ID } from "node-appwrite"
 import cloudinary from "@/lib/cloudinary"
 
-const app = new Hono().post(
-  "/",
-  zValidator("form", createWorkspacesSchema),
-  sessionMiddleware,
-  async (c) => {
+const app = new Hono()
+  .get("/", sessionMiddleware, async (c) => {
     const databases = c.get("databases")
     const user = c.get("user")
+    const workspaces = await databases.listDocuments(DATABASE_ID, WORKSPACES_ID)
+    return c.json({ data: workspaces })
+  })
 
-    const { name, image } = c.req.valid("form")
+  .post(
+    "/",
+    zValidator("form", createWorkspacesSchema),
+    sessionMiddleware,
+    async (c) => {
+      const databases = c.get("databases")
+      const user = c.get("user")
 
-    let imageUrl: string | undefined
-    if (image instanceof File) {
-      const arrayBuffer = await image.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
+      const { name, image } = c.req.valid("form")
 
-      const uploadResult = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: "workspaces" },
-          (error: any, result: unknown) => {
-            if (error) return reject(error)
-            resolve(result)
-          }
-        ).end(buffer)
-      })
+      let imageUrl: string | undefined
+      if (image instanceof File) {
+        const arrayBuffer = await image.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
 
-      imageUrl = (uploadResult as any).secure_url
-    }
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              { folder: "workspaces" },
+              (error: any, result: unknown) => {
+                if (error) return reject(error)
+                resolve(result)
+              }
+            )
+            .end(buffer)
+        })
 
-    const workspace = await databases.createDocument(
-      DATABASE_ID,
-      WORKSPACES_ID,
-      ID.unique(),
-      {
-        name,
-        userId: user.$id,
-        imageUrl
+        imageUrl = (uploadResult as any).secure_url
       }
-    )
-    
-    return c.json({ data: workspace })
-  }
-)
+
+      const workspace = await databases.createDocument(
+        DATABASE_ID,
+        WORKSPACES_ID,
+        ID.unique(),
+        {
+          name,
+          userId: user.$id,
+          imageUrl,
+        }
+      )
+
+      return c.json({ data: workspace })
+    }
+  )
 
 export default app
