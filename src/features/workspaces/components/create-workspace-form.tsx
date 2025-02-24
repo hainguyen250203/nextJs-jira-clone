@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useCreateWorkspace } from "@/features/workspaces/api/use-create-workspace"
 import { createWorkspacesSchema } from "@/features/workspaces/schemas"
+import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ImageIcon } from "lucide-react"
 import Image from "next/image"
@@ -41,12 +42,15 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
       ...values,
       image: values.image instanceof File ? values.image : "",
     }
-    mutate({ form: finalValues },{
-      onSuccess: ({data}) => {
-        form.reset()
-        router.push(`/workspaces/${data.$id}`)
+    mutate(
+      { form: finalValues },
+      {
+        onSuccess: ({ data }) => {
+          form.reset()
+          router.push(`/workspaces/${data.$id}`)
+        },
       }
-    })
+    )
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,6 +150,7 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                 variant="secondary"
                 onClick={onCancel}
                 disabled={isPending}
+                className={cn(!onCancel && "invisible")}
               >
                 Cancel
               </Button>

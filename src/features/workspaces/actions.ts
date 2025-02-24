@@ -12,7 +12,7 @@ export const getWorkspaces = async () => {
       .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
     // Lấy session từ cookie
     const session = cookies().get(AUTH_COOKIE)
-    if (!session?.value) return { data: { documents: [], total: 0 } }
+    if (!session?.value) return { documents: [], total: 0 }
 
     client.setSession(session.value)
     const databases = new Databases(client)
@@ -22,7 +22,7 @@ export const getWorkspaces = async () => {
       Query.equal("userId", user.$id),
     ])
     if (members.total === 0) {
-      return { data: { documents: [], total: 0 } }
+      return { documents: [], total: 0 }
     }
     const workspaceIds = members.documents.map((member) => member.workspaceId)
     const workspaces = await databases.listDocuments(
@@ -32,6 +32,6 @@ export const getWorkspaces = async () => {
     )
     return workspaces
   } catch (error) {
-    return { data: { documents: [], total: 0 } }
+    return { documents: [], total: 0 }
   }
 }
