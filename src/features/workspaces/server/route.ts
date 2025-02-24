@@ -17,7 +17,7 @@ const app = new Hono()
       Query.equal("userId", user.$id),
     ])
     if (members.total === 0) {
-      return c.json({ data: { document: [], total: 0 } })
+      return c.json({ data: { documents: [], total: 0 } })
     }
     const workspaceIds = members.documents.map((member) => member.workspaceId)
     const workspaces = await databases.listDocuments(
@@ -66,7 +66,7 @@ const app = new Hono()
           name,
           userId: user.$id,
           imageUrl,
-          inviteCode : generateInviteCode(6)
+          inviteCode: generateInviteCode(6),
         }
       )
 
