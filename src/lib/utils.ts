@@ -11,6 +11,5 @@ export function generateInviteCode(length: number) {
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length))
   }
-  console.log("🚀 ~ generateInviteCode ~ result:", result)
   return result
 }
