@@ -97,7 +97,6 @@ const app = new Hono()
         workspaceId,
         userId: user.$id,
       })
-      console.log("🚀 ~ image:", image)
       if (!member || member.role !== MemberRole.ADMIN) {
         return c.json({ error: "Unauthorized" }, 401)
       }

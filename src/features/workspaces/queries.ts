@@ -1,24 +1,14 @@
 "use server"
 
 import { DATABASE_ID, MEMBERS_ID, WORKSPACES_ID } from "@/config"
-import { AUTH_COOKIE } from "@/features/auth/constants"
 import { GetMember } from "@/features/members/utils"
 import { Workspace } from "@/features/workspaces/types"
-import { cookies } from "next/headers"
-import { Account, Client, Databases, Query } from "node-appwrite"
+import { createSessionClient } from "@/lib/appwrite"
+import { Query } from "node-appwrite"
 
 export const getWorkspaces = async () => {
   try {
-    const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
-    // Lấy session từ cookie
-    const session = cookies().get(AUTH_COOKIE)
-    if (!session?.value) return { documents: [], total: 0 }
-
-    client.setSession(session.value)
-    const databases = new Databases(client)
-    const account = new Account(client)
+    const { databases, account } = await createSessionClient()
     const user = await account.get()
     const members = await databases.listDocuments(DATABASE_ID, MEMBERS_ID, [
       Query.equal("userId", user.$id),
@@ -42,16 +32,7 @@ interface GetWorkspaceProps {
 }
 export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
   try {
-    const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
-      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
-    // Lấy session từ cookie
-    const session = cookies().get(AUTH_COOKIE)
-    if (!session) return null
-
-    client.setSession(session.value)
-    const databases = new Databases(client)
-    const account = new Account(client)
+    const { databases, account } = await createSessionClient()
     const user = await account.get()
 
     const member = await GetMember({ databases, workspaceId, userId: user.$id })
@@ -61,7 +42,7 @@ export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
     const workspace = await databases.getDocument<Workspace>(
       DATABASE_ID,
       WORKSPACES_ID,
-      workspaceId,
+      workspaceId
     )
     return workspace
   } catch {
