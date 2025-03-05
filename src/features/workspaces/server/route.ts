@@ -157,4 +157,37 @@ const app = new Hono()
     }
   )
 
+  .delete("/:workspaceId", sessionMiddleware, async (c) => {
+    const databases = c.get("databases")
+    const user = c.get("user")
+    const { workspaceId } = c.req.param()
+    const member = await GetMember({
+      databases,
+      workspaceId,
+      userId: user.$id,
+    })
+    // Lấy workspace hiện tại để lấy URL ảnh cũ
+    const workspaceData = await databases.getDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId
+    )
+    const oldImageUrl = workspaceData?.imageUrl
+    if (oldImageUrl) {
+      const publicId = oldImageUrl.split("/").pop()?.split(".")[0] // Lấy public_id từ URL ảnh
+      if (publicId) {
+        await cloudinary.uploader.destroy(`workspaces/${publicId}`)
+      }
+    }
+    if (!member || member.role !== MemberRole.ADMIN) {
+      return c.json({ error: "Unauthorized" }, 401)
+    }
+     await databases.deleteDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId
+    )
+    return c.json({ data: {$id: workspaceId} })
+  })
+
 export default app
