@@ -190,4 +190,42 @@ const app = new Hono()
     return c.json({ data: {$id: workspaceId} })
   })
 
+  .post("/:workspaceId/reset-invite-code", sessionMiddleware, async (c) => {
+    const databases = c.get("databases")
+    const user = c.get("user")
+    const { workspaceId } = c.req.param()
+    // Lấy workspace hiện tại để lấy URL ảnh cũ
+    const workspaceData = await databases.getDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId
+    )
+    const oldImageUrl = workspaceData?.imageUrl
+    if (oldImageUrl) {
+      const publicId = oldImageUrl.split("/").pop()?.split(".")[0] // Lấy public_id từ URL ảnh
+      if (publicId) {
+        await cloudinary.uploader.destroy(`workspaces/${publicId}`)
+      }
+    }
+    const member = await GetMember({
+      databases,
+      workspaceId,
+      userId: user.$id,
+    })
+
+    if (!member || member.role !== MemberRole.ADMIN) {
+      return c.json({ error: "Unauthorized" }, 401)
+    }
+
+    const workspace = await databases.updateDocument(
+      DATABASE_ID,
+      WORKSPACES_ID,
+      workspaceId,
+      {
+        inviteCode: generateInviteCode(6),
+      }
+    )
+    return c.json({ data: workspace })
+  })
+
 export default app
