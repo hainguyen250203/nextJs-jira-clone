@@ -1,0 +1,16 @@
+{
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 500,
+  "proseWrap": "never",
+  "arrowParens": "avoid",
+  "trailingComma": "none",
+  "overrides": [
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 500
+      }
+    }
+  ]
+}
